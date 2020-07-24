@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
@@ -8,17 +7,19 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace Splicer
 {
     public static class Splicer
     {
         [FunctionName("Splicer")]
-        public static async Task<IActionResult> Run(
+        public static async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
+            log.LogInformation("<h1>C# HTTP trigger function processed a request.</h1>");
             var watch = System.Diagnostics.Stopwatch.StartNew();
             string responseMessage = "";
             string urlString = "";
@@ -37,19 +38,23 @@ namespace Splicer
                 catch(Exception e)
                 {
                     log.LogError(e.Message);
-                    responseMessage += "Please enter valid URLs";
+                    responseMessage += "<h1>Please enter valid URLs</h1>";
                 }
 
                 watch.Stop();
 
             }
             else
-                responseMessage += "Please enter at least one URL separated by commas";
+                responseMessage += "<h1>Please enter at least one URL separated by commas</h1>";
 
             var elapsedMs = watch.ElapsedMilliseconds;
-            responseMessage += $"\nTotal execution time: { elapsedMs }";
-
-            return new OkObjectResult(responseMessage);
+            responseMessage += $"<h1>Total execution time: { elapsedMs }</h1>";
+            HttpResponseMessage res = new HttpResponseMessage
+            {
+                Content = new StringContent(responseMessage)
+            };
+            res.Content.Headers.ContentType = new MediaTypeHeaderValue("text/html");
+            return res;
         }
 
         /*private void executeSync_Click(object sender, RoutedEventArgs e)
